@@ -1,6 +1,8 @@
 package utils
 
-import "os"
+import (
+	"os"
+)
 
 // GetEnvWithDefault returns the value of the environment variable named by
 // the key. It is guaranteed to return the default value if the environment
@@ -22,4 +24,11 @@ func GetEnvWithDefaultNP(key, defaultValue string, nonEmpty bool) string {
 		return defaultValue
 	}
 	return val
+}
+
+// PanicIfError panics if the error is not nil.
+func PanicIfError(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
