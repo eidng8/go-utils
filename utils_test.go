@@ -24,13 +24,13 @@ func TestGetEnvWithDefault(t *testing.T) {
 	assert.Equal(t, "defaultValue", got)
 }
 
-func TestGetEnvWithDefaultNP(t *testing.T) {
+func TestGetEnvWithDefaultNE(t *testing.T) {
 	setupEnvTest(t)
-	got := GetEnvWithDefaultNP("TEST_ENV", "defaultValue", true)
+	got := GetEnvWithDefaultNE("TEST_ENV", "defaultValue")
 	assert.Equal(t, "TEST", got)
-	got = GetEnvWithDefaultNP("TEST_ENV_EMPTY", "defaultValue", true)
+	got = GetEnvWithDefaultNE("TEST_ENV_EMPTY", "defaultValue")
 	assert.Equal(t, "defaultValue", got)
-	got = GetEnvWithDefaultNP("NO_DEF", "defaultValue", true)
+	got = GetEnvWithDefaultNE("NO_DEF", "defaultValue")
 	assert.Equal(t, "defaultValue", got)
 }
 
