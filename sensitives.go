@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 
@@ -20,6 +19,15 @@ const (
 	PasswordHashKeyLenName  = "PASSWORD_HASH_KEY_LENGTH"
 	PasswordHashSaltLenName = "PASSWORD_HASH_SALT_LENGTH"
 )
+
+var (
+	ErrInvalidHashFormat    = errors.New("invalid hash format")
+	ErrInvalidHashVersion   = errors.New("invalid hash version")
+	ErrInvalidHashAlgorithm = errors.New("invalid hash algorithm")
+)
+
+// for unit test mocking
+var randomBytes = rand.Read
 
 type PasswordHashParams struct {
 	// Number of iterations
@@ -72,7 +80,7 @@ func DefaultPasswordHashParams() (*PasswordHashParams, error) {
 // HashPassword generates a new password hash using the argon2id algorithm.
 func HashPassword(password string, params PasswordHashParams) (string, error) {
 	salt := make([]byte, params.SaltLen)
-	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+	if _, err := randomBytes(salt); err != nil {
 		return "", err
 	}
 	hash := argon2.IDKey(
@@ -96,19 +104,30 @@ func HashPassword(password string, params PasswordHashParams) (string, error) {
 func ComparePassword(password, encodedHash string) (bool, error) {
 	parts := strings.Split(encodedHash, "$")
 	if len(parts) != 6 {
-		return false, errors.New("invalid encoded hash format")
+		return false, ErrInvalidHashFormat
 	}
+	if "argon2id" != parts[1] {
+		return false, ErrInvalidHashAlgorithm
+	}
+	if "" == parts[2] || "" == parts[3] || "" == parts[4] || "" == parts[5] {
+		return false, ErrInvalidHashFormat
+	}
+	var version uint32
 	var memory uint32
 	var iterations uint32
 	var parallelism uint8
-	n, err := fmt.Sscanf(
+	_, err := fmt.Sscanf(parts[2], "v=%d", &version)
+	if err != nil {
+		return false, err
+	}
+	if argon2.Version != version {
+		return false, ErrInvalidHashVersion
+	}
+	_, err = fmt.Sscanf(
 		parts[3], "m=%d,t=%d,p=%d", &memory, &iterations, &parallelism,
 	)
 	if err != nil {
 		return false, err
-	}
-	if 3 != n {
-		return false, errors.New("invalid encoded hash format")
 	}
 	salt, err := base64.RawStdEncoding.DecodeString(parts[4])
 	if err != nil {
