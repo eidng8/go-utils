@@ -1,7 +1,14 @@
 package utils
 
 import (
+	"crypto/rand"
 	"os"
+)
+
+var (
+	// for unit test mocking
+	randomBytes = rand.Read
+	randomInts  = rand.Int
 )
 
 // GetEnvWithDefault returns the value of the environment variable named by

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -25,9 +24,6 @@ var (
 	ErrInvalidHashVersion   = errors.New("invalid hash version")
 	ErrInvalidHashAlgorithm = errors.New("invalid hash algorithm")
 )
-
-// for unit test mocking
-var randomBytes = rand.Read
 
 type PasswordHashParams struct {
 	// Number of iterations

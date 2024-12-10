@@ -2,40 +2,41 @@ package utils
 
 import (
 	"crypto/rand"
-	"encoding/base64"
 	"math/big"
 	"strings"
 )
 
 const (
+	AlphaNum  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	Printable = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?/`~"
 )
 
 func RandomAlphaNum(length int) (string, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
+	return RandomString(AlphaNum, length)
 }
 
 func RandomPrintable(length int) (string, error) {
+	return RandomString(Printable, length)
+}
+
+func RandomString(dict string, length int) (string, error) {
 	result := make([]byte, length)
-	charsetLength := big.NewInt(int64(len(Printable)))
+	charsetLength := big.NewInt(int64(len(dict)))
 	for i := range result {
-		num, err := rand.Int(rand.Reader, charsetLength)
+		num, err := randomInts(rand.Reader, charsetLength)
 		if err != nil {
 			return "", err
 		}
-		result[i] = Printable[num.Int64()]
+		result[i] = dict[num.Int64()]
 	}
 	return string(result), nil
 }
 
 func StringIndexOfAny(s string, subs []string) int {
-	for i, a := range subs {
-		if strings.Contains(s, a) {
-			return i
+	for _, a := range subs {
+		idx := strings.Index(s, a)
+		if idx > -1 {
+			return idx
 		}
 	}
 	return -1
