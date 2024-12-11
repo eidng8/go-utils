@@ -36,7 +36,7 @@ func Test_password_hash_and_compare(t *testing.T) {
 		},
 		*params,
 	)
-	hash, err := HashPassword("test password", *params)
+	hash, err := HashPasswordWithParams("test password", *params)
 	require.Nil(t, err)
 	eq, err := ComparePassword("test password", hash)
 	require.Nil(t, err)
@@ -50,20 +50,7 @@ func Test_password_hash_and_compare_returns_false_if_not_equal(t *testing.T) {
 	require.Nil(t, os.Setenv(PasswordHashThreadsName, "6"))
 	require.Nil(t, os.Setenv(PasswordHashKeyLenName, "64"))
 	require.Nil(t, os.Setenv(PasswordHashSaltLenName, "32"))
-	params, err := DefaultPasswordHashParams()
-	require.Nil(t, err)
-	require.Equal(
-		t,
-		PasswordHashParams{
-			Times:   2,
-			Memory:  32768,
-			Threads: 6,
-			KeyLen:  64,
-			SaltLen: 32,
-		},
-		*params,
-	)
-	hash, err := HashPassword("test password", *params)
+	hash, err := HashPassword("test password")
 	require.Nil(t, err)
 	eq, err := ComparePassword("not password", hash)
 	require.Nil(t, err)
@@ -73,7 +60,7 @@ func Test_password_hash_and_compare_returns_false_if_not_equal(t *testing.T) {
 func Test_hash_time_returns_error_if_invalid_value(t *testing.T) {
 	defer resetPasswordHashParams(t)
 	require.Nil(t, os.Setenv(PasswordHashTimesName, "invalid"))
-	_, err := DefaultPasswordHashParams()
+	_, err := HashPassword("123")
 	require.NotNil(t, err)
 }
 
@@ -107,12 +94,10 @@ func Test_hash_salt_len_returns_error_if_invalid_value(t *testing.T) {
 
 func Test_HashPassword_handles_random_bytes_error(t *testing.T) {
 	defer resetPasswordHashParams(t)
-	params, err := DefaultPasswordHashParams()
-	require.Nil(t, err)
 	tmp := randomBytes
 	defer func() { randomBytes = tmp }()
 	randomBytes = func([]byte) (int, error) { return 0, errors.New("error") }
-	_, err = HashPassword("test password", *params)
+	_, err := HashPassword("test password")
 	require.NotNil(t, err)
 
 }

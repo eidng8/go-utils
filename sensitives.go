@@ -74,7 +74,18 @@ func DefaultPasswordHashParams() (*PasswordHashParams, error) {
 }
 
 // HashPassword generates a new password hash using the argon2id algorithm.
-func HashPassword(password string, params PasswordHashParams) (string, error) {
+func HashPassword(password string) (string, error) {
+	params, err := DefaultPasswordHashParams()
+	if err != nil {
+		return "", err
+	}
+	return HashPasswordWithParams(password, *params)
+}
+
+// HashPassword generates a new password hash using the argon2id algorithm.
+func HashPasswordWithParams(password string, params PasswordHashParams) (
+	string, error,
+) {
 	salt := make([]byte, params.SaltLen)
 	if _, err := randomBytes(salt); err != nil {
 		return "", err
