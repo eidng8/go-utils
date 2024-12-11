@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -27,4 +28,25 @@ func JoinInteger[A interface{ ~[]T }, T Integer](a A, sep string) string {
 		e[i] = fmt.Sprintf("%d", v)
 	}
 	return strings.Join(e, sep)
+}
+
+func SliceMapFunc[I, O any](a []I, fn func(I) (O, error)) ([]O, error) {
+	var err error
+	r := make([]O, len(a))
+	for i, v := range a {
+		r[i], err = fn(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return r, nil
+}
+
+func MapToType[T any](val any) (T, error) {
+	var zero T
+	v, ok := val.(T)
+	if !ok {
+		return zero, errors.New("inconvertible value")
+	}
+	return v, nil
 }
