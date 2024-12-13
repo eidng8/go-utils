@@ -63,3 +63,15 @@ func Test_MapToType_returns_error(t *testing.T) {
 	_, err := SliceMapFunc(sut, MapToType[int])
 	assert.NotNil(t, err)
 }
+
+func Test_SliceFindFunc(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	r := SliceFindFunc(sut1, func(i int) bool { return i == 2 })
+	assert.Equal(t, 2, r)
+}
+
+func Test_SliceFindFunc_not_found(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	r := SliceFindFunc(sut1, func(i int) bool { return i == 4 })
+	assert.Zero(t, r)
+}
