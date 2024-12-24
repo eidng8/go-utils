@@ -59,7 +59,7 @@ func Test_CloneDeepJsonable_unmarshal_throws_error(t *testing.T) {
 	require.Nil(t, actual)
 }
 
-func Test_Filter(t *testing.T) {
+func Test_FilterFunc_primitive(t *testing.T) {
 	sut1 := []int{1, 2, 3}
 	actual := FilterFunc(
 		sut1, func(v, idx int, a []int) bool {
@@ -71,7 +71,19 @@ func Test_Filter(t *testing.T) {
 	require.Equal(t, []int{2, 3}, actual)
 }
 
-func Test_Filter_not_found_returns_nil(t *testing.T) {
+func Test_FilterFunc_struct(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	actual := FilterFunc(
+		sut1, func(v sut, idx int, a []sut) bool {
+			require.Equal(t, sut1[idx], v)
+			require.Equal(t, sut1, a)
+			return v.Field1 > 1
+		},
+	)
+	require.Equal(t, []sut{{2, "two"}, {3, "three"}}, actual)
+}
+
+func Test_FilterFunc_not_found_returns_nil(t *testing.T) {
 	sut1 := []int{1, 2, 3}
 	actual := FilterFunc(
 		sut1, func(v, idx int, a []int) bool {

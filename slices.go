@@ -54,7 +54,7 @@ func ContainsAny[A ~[]T, T comparable](a A, b A) bool {
 	return false
 }
 
-func FilterFunc[A ~[]T, T comparable](a A, fn func(T, int, A) bool) A {
+func FilterFunc[A ~[]T, T any](a A, fn func(T, int, A) bool) A {
 	var res []T
 	for i, v := range a {
 		if fn(v, i, a) {
