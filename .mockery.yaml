@@ -1,0 +1,15 @@
+issue-845-fix: True
+with-expecter: true
+dir: "{{ .ConfigDir }}"
+filename: mock_{{ replaceAll .PackagePath "/" "_" }}_test.go
+#filename: mock_{{.InterfaceName}}_test.go
+outpkg: utils
+packages:
+  github.com/json-iterator/go:
+    # place your package-specific config here
+    config:
+    interfaces:
+      # select the interfaces you want mocked
+      API:
+        # Modify package-level config for this specific interface (if applicable)
+        config:
