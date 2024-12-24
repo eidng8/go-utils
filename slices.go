@@ -54,7 +54,22 @@ func ContainsAny[A ~[]T, T comparable](a A, b A) bool {
 	return false
 }
 
-func FilterFunc[A ~[]T, T any](a A, fn func(T, int, A) bool) A {
+// FilterFunc returns a new slice containing only the elements of the original
+// slice that satisfy the predicate function.
+func FilterFunc[A ~[]T, T any](a A, fn func(T) bool) A {
+	var res []T
+	for _, v := range a {
+		if fn(v) {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
+// FilterFuncA returns a new slice containing only the elements of the original
+// slice that satisfy the predicate function. The predicate is called with the
+// current element, the index of the current element, and the original slice.
+func FilterFuncA[A ~[]T, T any](a A, fn func(T, int, A) bool) A {
 	var res []T
 	for i, v := range a {
 		if fn(v, i, a) {
@@ -74,7 +89,27 @@ func Intersect[A ~[]T, T comparable](a A, b A) A {
 	return res
 }
 
-func IntersectFunc[A ~[]T, T any, O comparable](
+// IntersectFunc returns a new slice containing the intersection of two slices
+// based on the result of the predicate function.
+func IntersectFunc[A ~[]T, T any, O comparable](a A, b A, fn func(T) O) A {
+	var res []T
+	for _, v := range a {
+		va := fn(v)
+		for _, x := range b {
+			if va == fn(x) {
+				res = append(res, v)
+				break
+			}
+		}
+	}
+	return res
+}
+
+// IntersectFuncA returns a new slice containing the intersection of two slices
+// based on the result of the predicate function. The predicate function is
+// called with the current element, the index of the current element, and the
+// original slice.
+func IntersectFuncA[A ~[]T, T any, O comparable](
 	a A, b A, fn func(T, int, A) O,
 ) A {
 	var res []T
@@ -106,7 +141,7 @@ func JoinNumbersWithFormat[A ~[]T, T Numbers](a A, sep, format string) string {
 
 // MapToType converts an element of interface{} to an element of specific type,
 // returning an error if the conversion is not possible. Mainly for use as
-// predicate function in higher-order functions such as SliceMapFunc.
+// predicate function in higher-order functions such as SliceMapFuncA.
 func MapToType[T any](val any) (T, error) {
 	var zero T
 	v, ok := val.(T)
@@ -119,9 +154,19 @@ func MapToType[T any](val any) (T, error) {
 // Pluck extracts a list of values from a slice of structs.
 // The predicate function fn is applied to each element of the slice, and the
 // result is stored in a new slice.
-func Pluck[I ~[]V, V any, T any](
-	a I, fn func(V, int, I) T,
-) []T {
+func Pluck[A ~[]V, V any, T any](a A, fn func(V) T) []T {
+	r := make([]T, len(a))
+	for i, v := range a {
+		r[i] = fn(v)
+	}
+	return r
+}
+
+// PluckA extracts a list of values from a slice of structs.
+// The predicate function fn is applied to each element of the slice, and the
+// result is stored in a new slice.
+// The predicate is called with current index and the original slice.
+func PluckA[A ~[]V, V any, T any](a A, fn func(V, int, A) T) []T {
 	r := make([]T, len(a))
 	for i, v := range a {
 		r[i] = fn(v, i, a)
@@ -133,6 +178,24 @@ func Pluck[I ~[]V, V any, T any](
 // returning a new slice with the results. If the predicate function returns an
 // error, the function stops and returns the error.
 func SliceMapFunc[AI ~[]I, AO ~[]O, I, O any](
+	a AI, fn func(I) (O, error),
+) (AO, error) {
+	var err error
+	r := make([]O, len(a))
+	for i, v := range a {
+		r[i], err = fn(v)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return r, nil
+}
+
+// SliceMapFuncA applies the predicate function to each element of the slice,
+// returning a new slice with the results. If the predicate function returns an
+// error, the function stops and returns the error. The predicate is called with
+// current index and the original slice.
+func SliceMapFuncA[AI ~[]I, AO ~[]O, I, O any](
 	a AI, fn func(I, int, AI) (O, error),
 ) (AO, error) {
 	var err error
@@ -148,7 +211,20 @@ func SliceMapFunc[AI ~[]I, AO ~[]O, I, O any](
 
 // SliceFindFunc returns the first element in the slice that satisfies the
 // predicate function, or the zero value of the element type if none is found.
-func SliceFindFunc[A ~[]I, I any](a A, fn func(I, int, A) bool) I {
+func SliceFindFunc[A ~[]I, I any](a A, fn func(I) bool) I {
+	var zero I
+	for _, v := range a {
+		if fn(v) {
+			return v
+		}
+	}
+	return zero
+}
+
+// SliceFindFuncA returns the first element in the slice that satisfies the
+// predicate function, or the zero value of the element type if none is found.
+// The predicate is called with current index and the original slice.
+func SliceFindFuncA[A ~[]I, I any](a A, fn func(I, int, A) bool) I {
 	var zero I
 	for i, v := range a {
 		if fn(v, i, a) {
@@ -160,7 +236,17 @@ func SliceFindFunc[A ~[]I, I any](a A, fn func(I, int, A) bool) I {
 
 // ApplyFunc applies the given function to each element of the slice.
 // This function is intended to operate directly on elements in the slice.
-func ApplyFunc[A ~[]T, T any](a A, fn func(T, int, A)) A {
+func ApplyFunc[A ~[]T, T any](a A, fn func(T)) A {
+	for _, v := range a {
+		fn(v)
+	}
+	return a
+}
+
+// ApplyFuncA applies the given function to each element of the slice.
+// This function is intended to operate directly on elements in the slice.
+// The predicate is called with current index and the original slice.
+func ApplyFuncA[A ~[]T, T any](a A, fn func(T, int, A)) A {
 	for i, v := range a {
 		fn(v, i, a)
 	}
