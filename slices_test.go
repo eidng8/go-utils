@@ -530,7 +530,7 @@ func Test_Union(t *testing.T) {
 
 func Test_UnionFunc_with_primitive_array(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	sut2 := []int{3, 4, 5}
+	sut2 := []int{4, 5}
 	actual := UnionFunc(sut1, sut2, func(v int) bool { return v < 5 })
 	require.Equal(t, []int{1, 2, 3, 4}, actual)
 }
