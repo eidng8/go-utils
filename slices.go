@@ -29,6 +29,25 @@ type Numbers interface {
 	Integer | Floats | ComplexNumbers
 }
 
+// ApplyFunc applies the given function to each element of the slice.
+// This function is intended to operate directly on elements in the slice.
+func ApplyFunc[A ~[]T, T any](a A, fn func(T)) A {
+	for _, v := range a {
+		fn(v)
+	}
+	return a
+}
+
+// ApplyFuncA applies the given function to each element of the slice.
+// This function is intended to operate directly on elements in the slice.
+// The predicate is called with current index and the original slice.
+func ApplyFuncA[A ~[]T, T any](a A, fn func(T, int, A)) A {
+	for i, v := range a {
+		fn(v, i, a)
+	}
+	return a
+}
+
 func CloneDeepJsonable[P *V, V any](src P) (P, error) {
 	if nil == src {
 		return nil, nil
@@ -234,21 +253,36 @@ func SliceFindFuncA[A ~[]I, I any](a A, fn func(I, int, A) bool) I {
 	return zero
 }
 
-// ApplyFunc applies the given function to each element of the slice.
-// This function is intended to operate directly on elements in the slice.
-func ApplyFunc[A ~[]T, T any](a A, fn func(T)) A {
-	for _, v := range a {
-		fn(v)
+func Union[A ~[]T, T comparable](a A, b A) A {
+	c := make(A, len(a))
+	copy(c, a)
+	for _, v := range b {
+		if slices.Contains(c, v) {
+			continue
+		}
+		c = append(c, v)
 	}
-	return a
+	return c
 }
 
-// ApplyFuncA applies the given function to each element of the slice.
-// This function is intended to operate directly on elements in the slice.
-// The predicate is called with current index and the original slice.
-func ApplyFuncA[A ~[]T, T any](a A, fn func(T, int, A)) A {
-	for i, v := range a {
-		fn(v, i, a)
+func UnionFunc[A ~[]I, I any](a A, b A, fn func(I) bool) A {
+	c := make(A, len(a))
+	copy(c, a)
+	for _, v := range b {
+		if fn(v) {
+			c = append(c, v)
+		}
 	}
-	return a
+	return c
+}
+
+func UnionFuncA[A ~[]I, I any](a A, b A, fn func(I, int, A) bool) A {
+	c := make(A, len(a))
+	copy(c, a)
+	for i, v := range b {
+		if fn(v, i, c) {
+			c = append(c, v)
+		}
+	}
+	return c
 }

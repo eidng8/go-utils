@@ -13,6 +13,95 @@ type sut struct {
 	Field2 string `json:"field2"`
 }
 
+func Test_ApplyFunc_primitive_make_no_change(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	actual := ApplyFunc(sut1, func(v int) { v++ })
+	require.Equal(t, []int{1, 2, 3}, actual)
+	require.Equal(t, []int{1, 2, 3}, sut1)
+}
+
+func Test_ApplyFunc_primitive_ptr(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	sut2 := []*int{&sut1[0], &sut1[1], &sut1[2]}
+	actual := ApplyFunc(sut2, func(v *int) { *v++ })
+	require.Equal(t, []int{2, 3, 4}, sut1)
+	require.Equal(t, sut2, actual)
+}
+
+func Test_ApplyFunc_struct_ptr(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
+	actual := ApplyFunc(sut2, func(v *sut) { v.Field1++ })
+	require.Equal(
+		t, []sut{{2, "one"}, {3, "two"}, {4, "three"}}, sut1,
+	)
+	require.Equal(t, sut2, actual)
+}
+
+func Test_ApplyFunc_empty_slice(t *testing.T) {
+	var sut1 []int
+	ApplyFunc(sut1, func(v int) { require.Fail(t, "should not be called") })
+	require.Empty(t, sut1)
+}
+
+func Test_ApplyFuncA_primitive(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	actual := ApplyFuncA(
+		sut1, func(v int, idx int, a []int) {
+			require.Equal(t, sut1, a)
+			require.Equal(t, sut1[idx], v)
+			a[idx]++
+		},
+	)
+	require.Equal(t, []int{2, 3, 4}, actual)
+	require.Equal(t, []int{2, 3, 4}, sut1)
+}
+
+func Test_ApplyFuncA_struct_pass_by_value_make_no_change(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	actual := ApplyFuncA(
+		sut1, func(v sut, idx int, a []sut) {
+			require.Equal(t, sut1, a)
+			require.Equal(t, sut1[idx], v)
+			v.Field1++
+		},
+	)
+	require.Equal(
+		t, []sut{{1, "one"}, {2, "two"}, {3, "three"}}, actual,
+	)
+	require.Equal(
+		t, []sut{{1, "one"}, {2, "two"}, {3, "three"}}, sut1,
+	)
+}
+
+func Test_ApplyFuncA_struct_ptr(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
+	actual := ApplyFuncA(
+		sut2, func(v *sut, idx int, a []*sut) {
+			require.Equal(t, sut2, a)
+			require.Equal(t, sut2[idx], v)
+			v.Field1++
+		},
+	)
+	require.Equal(
+		t, []*sut{{2, "one"}, {3, "two"}, {4, "three"}}, actual,
+	)
+	require.Equal(
+		t, []sut{{2, "one"}, {3, "two"}, {4, "three"}}, sut1,
+	)
+}
+
+func Test_ApplyFuncA_empty_slice(t *testing.T) {
+	var sut1 []int
+	ApplyFuncA(
+		sut1, func(v int, _ int, _ []int) {
+			require.Fail(t, "should not be called")
+		},
+	)
+	require.Empty(t, sut1)
+}
+
 func Test_CloneDeepJsonable_primitive(t *testing.T) {
 	sut1 := []int{1, 2, 3}
 	actual, err := CloneDeepJsonable(&sut1)
@@ -432,91 +521,79 @@ func Test_SliceMapFuncA_returns_error(t *testing.T) {
 	require.Empty(t, r)
 }
 
-func Test_ApplyFunc_primitive_make_no_change(t *testing.T) {
+func Test_Union(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	actual := ApplyFunc(sut1, func(v int) { v++ })
-	require.Equal(t, []int{1, 2, 3}, actual)
-	require.Equal(t, []int{1, 2, 3}, sut1)
+	sut2 := []int{3, 4, 5}
+	actual := Union(sut1, sut2)
+	require.Equal(t, []int{1, 2, 3, 4, 5}, actual)
 }
 
-func Test_ApplyFunc_primitive_ptr(t *testing.T) {
+func Test_UnionFunc_with_primitive_array(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	sut2 := []*int{&sut1[0], &sut1[1], &sut1[2]}
-	actual := ApplyFunc(sut2, func(v *int) { *v++ })
-	require.Equal(t, []int{2, 3, 4}, sut1)
-	require.Equal(t, sut2, actual)
+	sut2 := []int{3, 4, 5}
+	actual := UnionFunc(sut1, sut2, func(v int) bool { return v < 5 })
+	require.Equal(t, []int{1, 2, 3, 4}, actual)
 }
 
-func Test_ApplyFunc_struct_ptr(t *testing.T) {
+func Test_UnionFunc_with_struct_array(t *testing.T) {
 	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
-	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
-	actual := ApplyFunc(sut2, func(v *sut) { v.Field1++ })
+	sut2 := []sut{{5, "two"}, {4, "four"}}
+	actual := UnionFunc(sut1, sut2, func(v sut) bool { return v.Field1 < 5 })
 	require.Equal(
-		t, []sut{{2, "one"}, {3, "two"}, {4, "three"}}, sut1,
+		t, []sut{{1, "one"}, {2, "two"}, {3, "three"}, {4, "four"}}, actual,
 	)
-	require.Equal(t, sut2, actual)
 }
 
-func Test_ApplyFunc_empty_slice(t *testing.T) {
-	var sut1 []int
-	ApplyFunc(sut1, func(v int) { require.Fail(t, "should not be called") })
-	require.Empty(t, sut1)
+func Test_UnionFunc_with_struct_ptr_array(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	sut2 := []sut{{5, "two"}, {4, "four"}}
+	sut3 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
+	sut4 := []*sut{&sut2[0], &sut2[1]}
+	actual := UnionFunc(sut3, sut4, func(v *sut) bool { return v.Field1 < 5 })
+	require.Equal(
+		t, []*sut{{1, "one"}, {2, "two"}, {3, "three"}, {4, "four"}},
+		actual,
+	)
 }
 
-func Test_ApplyFuncA_primitive(t *testing.T) {
+func Test_UnionFuncA_with_primitive_array(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	actual := ApplyFuncA(
-		sut1, func(v int, idx int, a []int) {
-			require.Equal(t, sut1, a)
-			require.Equal(t, sut1[idx], v)
-			a[idx]++
-		},
-	)
-	require.Equal(t, []int{2, 3, 4}, actual)
-	require.Equal(t, []int{2, 3, 4}, sut1)
-}
-
-func Test_ApplyFuncA_struct_pass_by_value_make_no_change(t *testing.T) {
-	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
-	actual := ApplyFuncA(
-		sut1, func(v sut, idx int, a []sut) {
-			require.Equal(t, sut1, a)
-			require.Equal(t, sut1[idx], v)
-			v.Field1++
-		},
-	)
-	require.Equal(
-		t, []sut{{1, "one"}, {2, "two"}, {3, "three"}}, actual,
-	)
-	require.Equal(
-		t, []sut{{1, "one"}, {2, "two"}, {3, "three"}}, sut1,
-	)
-}
-
-func Test_ApplyFuncA_struct_ptr(t *testing.T) {
-	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
-	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
-	actual := ApplyFuncA(
-		sut2, func(v *sut, idx int, a []*sut) {
-			require.Equal(t, sut2, a)
+	sut2 := []int{4, 5}
+	actual := UnionFuncA(
+		sut1, sut2, func(v, idx int, a []int) bool {
 			require.Equal(t, sut2[idx], v)
-			v.Field1++
+			return v < 5
+		},
+	)
+	require.Equal(t, []int{1, 2, 3, 4}, actual)
+}
+
+func Test_UnionFuncA_with_struct_array(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	sut2 := []sut{{5, "two"}, {4, "four"}}
+	actual := UnionFuncA(
+		sut1, sut2, func(v sut, idx int, a []sut) bool {
+			require.Equal(t, sut2[idx], v)
+			return v.Field1 < 5
 		},
 	)
 	require.Equal(
-		t, []*sut{{2, "one"}, {3, "two"}, {4, "three"}}, actual,
-	)
-	require.Equal(
-		t, []sut{{2, "one"}, {3, "two"}, {4, "three"}}, sut1,
+		t, []sut{{1, "one"}, {2, "two"}, {3, "three"}, {4, "four"}}, actual,
 	)
 }
 
-func Test_ApplyFuncA_empty_slice(t *testing.T) {
-	var sut1 []int
-	ApplyFuncA(
-		sut1, func(v int, _ int, _ []int) {
-			require.Fail(t, "should not be called")
+func Test_UnionFuncA_with_struct_ptr_array(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	sut2 := []sut{{5, "two"}, {4, "four"}}
+	sut3 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
+	sut4 := []*sut{&sut2[0], &sut2[1]}
+	actual := UnionFuncA(
+		sut3, sut4, func(v *sut, idx int, a []*sut) bool {
+			require.Equal(t, &sut2[idx], v)
+			return v.Field1 < 5
 		},
 	)
-	require.Empty(t, sut1)
+	require.Equal(
+		t, []*sut{{1, "one"}, {2, "two"}, {3, "three"}, {4, "four"}}, actual,
+	)
 }
