@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
@@ -17,6 +18,12 @@ const (
 	PasswordHashThreadsName = "PASSWORD_HASH_THREADS"
 	PasswordHashKeyLenName  = "PASSWORD_HASH_KEY_LENGTH"
 	PasswordHashSaltLenName = "PASSWORD_HASH_SALT_LENGTH"
+)
+
+var (
+	// for unit test mocking
+	randomBytes = rand.Read
+	randomInts  = rand.Int
 )
 
 var (
