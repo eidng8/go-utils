@@ -8,8 +8,8 @@ import (
 )
 
 func Test_PanicIfError(t *testing.T) {
-	assert.Panics(t, func() { PanicIfError(assert.AnError) })
-	assert.NotPanics(t, func() { PanicIfError(nil) })
+	require.Panics(t, func() { PanicIfError(assert.AnError) })
+	require.NotPanics(t, func() { PanicIfError(nil) })
 }
 
 func Test_ReturnOrPanic(t *testing.T) {
