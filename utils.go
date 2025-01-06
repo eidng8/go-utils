@@ -6,3 +6,8 @@ func PanicIfError(err error) {
 		panic(err)
 	}
 }
+
+func ReturnOrPanic[T any](v T, err error) T {
+	PanicIfError(err)
+	return v
+}
