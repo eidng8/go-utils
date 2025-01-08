@@ -158,6 +158,13 @@ func JoinNumbersWithFormat[A ~[]T, T Numbers](a A, sep, format string) string {
 	return strings.Join(e, sep)
 }
 
+// MapToAny converts an element of specific type to an element of type any,
+// returning an error if the conversion is not possible. Mainly for use as
+// predicate function in higher-order functions such as SliceMapFuncA.
+func MapToAny[T any](val T) (any, error) {
+	return val, nil
+}
+
 // MapToType converts an element of interface{} to an element of specific type,
 // returning an error if the conversion is not possible. Mainly for use as
 // predicate function in higher-order functions such as SliceMapFuncA.
@@ -196,7 +203,7 @@ func PluckA[A ~[]V, V any, T any](a A, fn func(V, int, A) T) []T {
 // SliceMapFunc applies the predicate function to each element of the slice,
 // returning a new slice with the results. If the predicate function returns an
 // error, the function stops and returns the error.
-func SliceMapFunc[AI ~[]I, AO ~[]O, I, O any](
+func SliceMapFunc[AO ~[]O, AI ~[]I, O, I any](
 	a AI, fn func(I) (O, error),
 ) (AO, error) {
 	var err error
@@ -214,7 +221,7 @@ func SliceMapFunc[AI ~[]I, AO ~[]O, I, O any](
 // returning a new slice with the results. If the predicate function returns an
 // error, the function stops and returns the error. The predicate is called with
 // current index and the original slice.
-func SliceMapFuncA[AI ~[]I, AO ~[]O, I, O any](
+func SliceMapFuncA[AO ~[]O, AI ~[]I, O, I any](
 	a AI, fn func(I, int, AI) (O, error),
 ) (AO, error) {
 	var err error
