@@ -7,6 +7,12 @@ func PanicIfError(err error) {
 	}
 }
 
+// Ptr returns a pointer to the value.
+func Ptr[T any](v T) *T {
+	return &v
+}
+
+// ReturnOrPanic returns the value if the error is nil, otherwise panics.
 func ReturnOrPanic[T any](v T, err error) T {
 	PanicIfError(err)
 	return v

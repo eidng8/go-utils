@@ -12,6 +12,12 @@ func Test_PanicIfError(t *testing.T) {
 	require.NotPanics(t, func() { PanicIfError(nil) })
 }
 
+func Test_Ptr(t *testing.T) {
+	num := 1
+	expected := &num
+	require.Equal(t, expected, Ptr(1))
+}
+
 func Test_ReturnOrPanic(t *testing.T) {
 	require.Panics(
 		t, func() { ReturnOrPanic[struct{}](struct{}{}, assert.AnError) },
