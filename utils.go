@@ -7,7 +7,8 @@ func PanicIfError(err error) {
 	}
 }
 
-// Ptr returns a pointer to the value.
+// Ptr returns a pointer to the value. Use with caution! This function directly
+// returns a pointer to the parameter.
 func Ptr[T any](v T) *T {
 	return &v
 }
