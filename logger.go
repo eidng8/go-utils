@@ -4,6 +4,14 @@ import (
 	lg "log"
 )
 
+type TaggedLogger interface {
+	Debugf(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+	Infof(format string, args ...interface{})
+	Panicf(format string, args ...interface{})
+	PanicIfError(err error)
+}
+
 type SimpleTaggedLog struct {
 	logger *lg.Logger
 	Debug  bool
