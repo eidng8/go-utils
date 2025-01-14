@@ -3,6 +3,7 @@ module github.com/eidng8/go-utils
 go 1.23.2
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/json-iterator/go v1.1.12
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/stretchr/testify v1.10.0
