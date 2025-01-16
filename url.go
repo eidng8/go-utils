@@ -3,6 +3,7 @@ package utils
 import (
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // RequestBaseUrl returns the base URL of the request.
@@ -10,6 +11,31 @@ func RequestBaseUrl(request *http.Request) *url.URL {
 	u := *request.URL
 	u.RawQuery = ""
 	return &u
+}
+
+// RequestFullUrl returns the full URL of the request.
+func RequestFullUrl(request *http.Request) string {
+	var sb strings.Builder
+	sb.Grow(
+		len(request.RequestURI) + len(request.Host) +
+			len(request.URL.Fragment) + 10,
+	)
+	if nil == request.TLS {
+		sb.WriteString("http")
+	} else {
+		sb.WriteString("https")
+	}
+	sb.WriteString(":")
+	if "" == request.URL.Opaque {
+		sb.WriteString("//")
+		sb.WriteString(request.Host)
+	}
+	sb.WriteString(request.URL.RequestURI())
+	if "" != request.URL.Fragment {
+		sb.WriteString("#")
+		sb.WriteString(request.URL.Fragment)
+	}
+	return sb.String()
 }
 
 // RequestUrlWithQueryParam returns a new URL instance with the given query
