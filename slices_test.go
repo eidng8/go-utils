@@ -322,14 +322,19 @@ func Test_MapToAny(t *testing.T) {
 
 func Test_MapToType(t *testing.T) {
 	var sut interface{} = "abc"
-	r, err := MapToType[string](sut)
+	require.Equal(t, "abc", MapToType[string](sut))
+}
+
+func Test_MapToTypeE(t *testing.T) {
+	var sut interface{} = "abc"
+	r, err := MapToTypeE[string](sut)
 	require.Nil(t, err)
 	require.Equal(t, "abc", r)
 }
 
 func Test_MapToType_returns_error(t *testing.T) {
 	var sut interface{} = "abc"
-	_, err := MapToType[int](sut)
+	_, err := MapToTypeE[int](sut)
 	require.NotNil(t, err)
 }
 
@@ -441,10 +446,9 @@ func Test_PluckA_ptr(t *testing.T) {
 
 func Test_SliceMapFunc_primitive(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	r, err := SliceMapFunc[[]string](
-		sut1, func(v int) (string, error) { return strconv.Itoa(v), nil },
+	r := SliceMapFunc[[]string](
+		sut1, func(v int) string { return strconv.Itoa(v) },
 	)
-	require.Nil(t, err)
 	require.Equal(t, []string{"1", "2", "3"}, r)
 }
 
@@ -452,26 +456,54 @@ func Test_SliceMapFunc_to_struct_ptr(t *testing.T) {
 	sut1 := []int{1, 2, 3}
 	exp := []sut{{1, "test"}, {2, "test"}, {3, "test"}}
 	expected := []*sut{&exp[0], &exp[1], &exp[2]}
-	r, err := SliceMapFunc[[]*sut](
-		sut1, func(v int) (*sut, error) { return &sut{v, "test"}, nil },
+	r := SliceMapFunc[[]*sut](
+		sut1, func(v int) *sut { return &sut{v, "test"} },
 	)
-	require.Nil(t, err)
 	require.Equal(t, expected, r)
 }
 
 func Test_SliceMapFunc_from_struct_ptr(t *testing.T) {
 	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
 	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
-	r, err := SliceMapFunc[[]string](
+	r := SliceMapFunc[[]string](
+		sut2, func(v *sut) string { return v.Field2 },
+	)
+	require.Equal(t, []string{"one", "two", "three"}, r)
+}
+
+func Test_SliceMapFuncE_primitive(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	r, err := SliceMapFuncE[[]string](
+		sut1, func(v int) (string, error) { return strconv.Itoa(v), nil },
+	)
+	require.Nil(t, err)
+	require.Equal(t, []string{"1", "2", "3"}, r)
+}
+
+func Test_SliceMapFuncE_to_struct_ptr(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	exp := []sut{{1, "test"}, {2, "test"}, {3, "test"}}
+	expected := []*sut{&exp[0], &exp[1], &exp[2]}
+	r, err := SliceMapFuncE[[]*sut](
+		sut1, func(v int) (*sut, error) { return &sut{v, "test"}, nil },
+	)
+	require.Nil(t, err)
+	require.Equal(t, expected, r)
+}
+
+func Test_SliceMapFuncE_from_struct_ptr(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
+	r, err := SliceMapFuncE[[]string](
 		sut2, func(v *sut) (string, error) { return v.Field2, nil },
 	)
 	require.Nil(t, err)
 	require.Equal(t, []string{"one", "two", "three"}, r)
 }
 
-func Test_SliceMapFunc_returns_error(t *testing.T) {
+func Test_SliceMapFuncE_returns_error(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	r, err := SliceMapFunc[[]string](
+	r, err := SliceMapFuncE[[]string](
 		sut1, func(v int) (string, error) { return "", errors.New("test") },
 	)
 	require.NotNil(t, err)
@@ -481,7 +513,39 @@ func Test_SliceMapFunc_returns_error(t *testing.T) {
 
 func Test_SliceMapFuncA_primitive(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	r, err := SliceMapFuncA[[]string](
+	r := SliceMapFuncA[[]string](
+		sut1, func(v, idx int, a []int) string {
+			require.Equal(t, sut1[idx], v)
+			return strconv.Itoa(v)
+		},
+	)
+	require.Equal(t, []string{"1", "2", "3"}, r)
+}
+
+func Test_SliceMapFuncA_to_struct_ptr(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	exp := []sut{{1, "test"}, {2, "test"}, {3, "test"}}
+	expected := []*sut{&exp[0], &exp[1], &exp[2]}
+	r := SliceMapFuncA[[]*sut](
+		sut1, func(v, idx int, a []int) *sut {
+			require.Equal(t, sut1[idx], v)
+			return &sut{v, "test"}
+		},
+	)
+	require.Equal(t, expected, r)
+}
+
+func Test_SliceMapFuncA_from_struct_ptr(t *testing.T) {
+	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
+	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
+	r := SliceMapFuncA[[]string](sut2,
+		func(v *sut, _ int, _ []*sut) string { return v.Field2 })
+	require.Equal(t, []string{"one", "two", "three"}, r)
+}
+
+func Test_SliceMapFuncAE_primitive(t *testing.T) {
+	sut1 := []int{1, 2, 3}
+	r, err := SliceMapFuncAE[[]string](
 		sut1, func(v, idx int, a []int) (string, error) {
 			require.Equal(t, sut1[idx], v)
 			return strconv.Itoa(v), nil
@@ -491,11 +555,11 @@ func Test_SliceMapFuncA_primitive(t *testing.T) {
 	require.Equal(t, []string{"1", "2", "3"}, r)
 }
 
-func Test_SliceMapFuncA_to_struct_ptr(t *testing.T) {
+func Test_SliceMapFuncAE_to_struct_ptr(t *testing.T) {
 	sut1 := []int{1, 2, 3}
 	exp := []sut{{1, "test"}, {2, "test"}, {3, "test"}}
 	expected := []*sut{&exp[0], &exp[1], &exp[2]}
-	r, err := SliceMapFuncA[[]*sut](
+	r, err := SliceMapFuncAE[[]*sut](
 		sut1, func(v, idx int, a []int) (*sut, error) {
 			require.Equal(t, sut1[idx], v)
 			return &sut{v, "test"}, nil
@@ -505,10 +569,10 @@ func Test_SliceMapFuncA_to_struct_ptr(t *testing.T) {
 	require.Equal(t, expected, r)
 }
 
-func Test_SliceMapFuncA_from_struct_ptr(t *testing.T) {
+func Test_SliceMapFuncAE_from_struct_ptr(t *testing.T) {
 	sut1 := []sut{{1, "one"}, {2, "two"}, {3, "three"}}
 	sut2 := []*sut{&sut1[0], &sut1[1], &sut1[2]}
-	r, err := SliceMapFuncA[[]string](
+	r, err := SliceMapFuncAE[[]string](
 		sut2,
 		func(v *sut, _ int, _ []*sut) (string, error) { return v.Field2, nil },
 	)
@@ -516,9 +580,9 @@ func Test_SliceMapFuncA_from_struct_ptr(t *testing.T) {
 	require.Equal(t, []string{"one", "two", "three"}, r)
 }
 
-func Test_SliceMapFuncA_returns_error(t *testing.T) {
+func Test_SliceMapFuncAE_returns_error(t *testing.T) {
 	sut1 := []int{1, 2, 3}
-	r, err := SliceMapFuncA[[]string](
+	r, err := SliceMapFuncAE[[]string](
 		sut1, func(v, idx int, a []int) (string, error) {
 			require.Equal(t, sut1[idx], v)
 			return "", errors.New("test")

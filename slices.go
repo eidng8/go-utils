@@ -160,15 +160,22 @@ func JoinNumbersWithFormat[A ~[]T, T Numbers](a A, sep, format string) string {
 
 // MapToAny converts an element of specific type to an element of type any,
 // returning an error if the conversion is not possible. Mainly for use as
-// predicate function in higher-order functions such as SliceMapFuncA.
+// predicate function in higher-order functions such as SliceMapFuncAE.
 func MapToAny[T any](val T) (any, error) {
 	return val, nil
 }
 
 // MapToType converts an element of interface{} to an element of specific type,
 // returning an error if the conversion is not possible. Mainly for use as
-// predicate function in higher-order functions such as SliceMapFuncA.
-func MapToType[T any](val any) (T, error) {
+// predicate function in higher-order functions such as SliceMapFunc.
+func MapToType[T any](val any) T {
+	return val.(T)
+}
+
+// MapToTypeE converts an element of interface{} to an element of specific type,
+// returning an error if the conversion is not possible. Mainly for use as
+// predicate function in higher-order functions such as SliceMapFuncAE.
+func MapToTypeE[T any](val any) (T, error) {
 	var zero T
 	v, ok := val.(T)
 	if !ok {
@@ -201,9 +208,19 @@ func PluckA[A ~[]V, V any, T any](a A, fn func(V, int, A) T) []T {
 }
 
 // SliceMapFunc applies the predicate function to each element of the slice,
+// returning a new slice with the results.
+func SliceMapFunc[AO ~[]O, AI ~[]I, O, I any](a AI, fn func(I) O) AO {
+	r := make([]O, len(a))
+	for i, v := range a {
+		r[i] = fn(v)
+	}
+	return r
+}
+
+// SliceMapFuncE applies the predicate function to each element of the slice,
 // returning a new slice with the results. If the predicate function returns an
 // error, the function stops and returns the error.
-func SliceMapFunc[AO ~[]O, AI ~[]I, O, I any](
+func SliceMapFuncE[AO ~[]O, AI ~[]I, O, I any](
 	a AI, fn func(I) (O, error),
 ) (AO, error) {
 	var err error
@@ -218,10 +235,21 @@ func SliceMapFunc[AO ~[]O, AI ~[]I, O, I any](
 }
 
 // SliceMapFuncA applies the predicate function to each element of the slice,
+// returning a new slice with the results. The predicate is called with
+// current index and the original slice.
+func SliceMapFuncA[AO ~[]O, AI ~[]I, O, I any](a AI, fn func(I, int, AI) O) AO {
+	r := make([]O, len(a))
+	for i, v := range a {
+		r[i] = fn(v, i, a)
+	}
+	return r
+}
+
+// SliceMapFuncAE applies the predicate function to each element of the slice,
 // returning a new slice with the results. If the predicate function returns an
 // error, the function stops and returns the error. The predicate is called with
 // current index and the original slice.
-func SliceMapFuncA[AO ~[]O, AI ~[]I, O, I any](
+func SliceMapFuncAE[AO ~[]O, AI ~[]I, O, I any](
 	a AI, fn func(I, int, AI) (O, error),
 ) (AO, error) {
 	var err error

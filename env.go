@@ -153,7 +153,7 @@ func GetEnvIntCsv(key string, defaultValue []int64, bitSize int) (
 	if nil == ss {
 		return defaultValue, nil
 	}
-	vs, err := SliceMapFunc[[]int64](
+	vs, err := SliceMapFuncE[[]int64](
 		ss, func(s string) (int64, error) {
 			return strconv.ParseInt(s, 10, bitSize)
 		},
@@ -165,40 +165,40 @@ func GetEnvIntCsv(key string, defaultValue []int64, bitSize int) (
 }
 
 func GetEnvInt8Csv(key string, defaultValue []int8) ([]int8, error) {
-	dv, _ := SliceMapFunc[[]int64](
+	dv, _ := SliceMapFuncE[[]int64](
 		defaultValue, func(i int8) (int64, error) { return int64(i), nil },
 	)
 	vs, err := GetEnvIntCsv(key, dv, 8)
 	if err != nil {
 		return nil, err
 	}
-	return SliceMapFunc[[]int8](
+	return SliceMapFuncE[[]int8](
 		vs, func(i int64) (int8, error) { return int8(i), nil },
 	)
 }
 
 func GetEnvInt16Csv(key string, defaultValue []int16) ([]int16, error) {
-	dv, _ := SliceMapFunc[[]int64](
+	dv, _ := SliceMapFuncE[[]int64](
 		defaultValue, func(i int16) (int64, error) { return int64(i), nil },
 	)
 	vs, err := GetEnvIntCsv(key, dv, 16)
 	if err != nil {
 		return nil, err
 	}
-	return SliceMapFunc[[]int16](
+	return SliceMapFuncE[[]int16](
 		vs, func(i int64) (int16, error) { return int16(i), nil },
 	)
 }
 
 func GetEnvInt32Csv(key string, defaultValue []int32) ([]int32, error) {
-	dv, _ := SliceMapFunc[[]int64](
+	dv, _ := SliceMapFuncE[[]int64](
 		defaultValue, func(i int32) (int64, error) { return int64(i), nil },
 	)
 	vs, err := GetEnvIntCsv(key, dv, 32)
 	if err != nil {
 		return nil, err
 	}
-	return SliceMapFunc[[]int32](
+	return SliceMapFuncE[[]int32](
 		vs, func(i int64) (int32, error) { return int32(i), nil },
 	)
 }
@@ -214,7 +214,7 @@ func GetEnvUintCsv(key string, defaultValue []uint64, bitSize int) (
 	if nil == ss {
 		return defaultValue, nil
 	}
-	vs, err := SliceMapFunc[[]uint64](
+	vs, err := SliceMapFuncE[[]uint64](
 		ss, func(s string) (uint64, error) {
 			return strconv.ParseUint(s, 10, bitSize)
 		},
@@ -226,40 +226,40 @@ func GetEnvUintCsv(key string, defaultValue []uint64, bitSize int) (
 }
 
 func GetEnvUint8Csv(key string, defaultValue []uint8) ([]uint8, error) {
-	dv, _ := SliceMapFunc[[]uint64](
+	dv, _ := SliceMapFuncE[[]uint64](
 		defaultValue, func(i uint8) (uint64, error) { return uint64(i), nil },
 	)
 	vs, err := GetEnvUintCsv(key, dv, 8)
 	if err != nil {
 		return nil, err
 	}
-	return SliceMapFunc[[]uint8](
+	return SliceMapFuncE[[]uint8](
 		vs, func(i uint64) (uint8, error) { return uint8(i), nil },
 	)
 }
 
 func GetEnvUint16Csv(key string, defaultValue []uint16) ([]uint16, error) {
-	dv, _ := SliceMapFunc[[]uint64](
+	dv, _ := SliceMapFuncE[[]uint64](
 		defaultValue, func(i uint16) (uint64, error) { return uint64(i), nil },
 	)
 	vs, err := GetEnvUintCsv(key, dv, 16)
 	if err != nil {
 		return nil, err
 	}
-	return SliceMapFunc[[]uint16](
+	return SliceMapFuncE[[]uint16](
 		vs, func(i uint64) (uint16, error) { return uint16(i), nil },
 	)
 }
 
 func GetEnvUint32Csv(key string, defaultValue []uint32) ([]uint32, error) {
-	dv, _ := SliceMapFunc[[]uint64](
+	dv, _ := SliceMapFuncE[[]uint64](
 		defaultValue, func(i uint32) (uint64, error) { return uint64(i), nil },
 	)
 	vs, err := GetEnvUintCsv(key, dv, 32)
 	if err != nil {
 		return nil, err
 	}
-	return SliceMapFunc[[]uint32](
+	return SliceMapFuncE[[]uint32](
 		vs, func(i uint64) (uint32, error) { return uint32(i), nil },
 	)
 }
@@ -275,7 +275,7 @@ func GetEnvFloatCsv(key string, defaultValue []float64, bitSize int) (
 	if nil == ss {
 		return defaultValue, nil
 	}
-	vs, err := SliceMapFunc[[]float64](
+	vs, err := SliceMapFuncE[[]float64](
 		ss, func(s string) (float64, error) {
 			return strconv.ParseFloat(
 				s, bitSize,
@@ -289,7 +289,7 @@ func GetEnvFloatCsv(key string, defaultValue []float64, bitSize int) (
 }
 
 func GetEnvFloat32Csv(key string, defaultValue []float32) ([]float32, error) {
-	dv, _ := SliceMapFunc[[]float64](
+	dv, _ := SliceMapFuncE[[]float64](
 		defaultValue,
 		func(f float32) (float64, error) { return float64(f), nil },
 	)
@@ -297,7 +297,7 @@ func GetEnvFloat32Csv(key string, defaultValue []float32) ([]float32, error) {
 	if err != nil {
 		return nil, err
 	}
-	return SliceMapFunc[[]float32](
+	return SliceMapFuncE[[]float32](
 		vs, func(f float64) (float32, error) { return float32(f), nil },
 	)
 }
@@ -311,7 +311,7 @@ func GetEnvBoolCsv(key string, defaultValue []bool) ([]bool, error) {
 	if nil == ss {
 		return defaultValue, nil
 	}
-	vs, err := SliceMapFunc[[]bool](
+	vs, err := SliceMapFuncE[[]bool](
 		ss,
 		func(s string) (bool, error) { return strconv.ParseBool(s) },
 	)
