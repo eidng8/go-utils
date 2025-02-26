@@ -2,7 +2,7 @@
   <configuration default="false" name="go test" type="GoTestRunConfiguration" factoryName="Go Test">
     <module name="go-utils" />
     <working_directory value="$PROJECT_DIR$" />
-    <kind value="PACKAGE" />
+    <kind value="DIRECTORY" />
     <package value="github.com/eidng8/go-utils" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$" />
