@@ -87,5 +87,9 @@ func (m StringTaggedLogger) PanicIfError(err error) {
 	}
 }
 
+func (m StringTaggedLogger) String() string {
+	return m.sb.String()
+}
+
 var _ TaggedLogger = SimpleTaggedLog{}
 var _ TaggedLogger = StringTaggedLogger{}

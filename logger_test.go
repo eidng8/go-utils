@@ -90,5 +90,5 @@ func Test_StringTaggedLogger_panics_if_error(t *testing.T) {
 func Test_StringTaggedLogger_does_not_panic(t *testing.T) {
 	logger := NewStringTaggedLogger()
 	require.NotPanics(t, func() { logger.PanicIfError(nil) })
-	require.Empty(t, logger.sb.String())
+	require.Empty(t, logger.String())
 }
