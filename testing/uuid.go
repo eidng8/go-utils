@@ -22,7 +22,7 @@ type MockUuid struct {
 	cfg MockConfig
 }
 
-func Mock(cfg MockConfig) MockUuid {
+func NewUuidMock(cfg MockConfig) MockUuid {
 	m := MockUuid{}
 	m.id = &utils.Uuid{}
 	m.cfg = cfg
