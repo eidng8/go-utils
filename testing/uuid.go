@@ -1,4 +1,4 @@
-package utils
+package testing
 
 import (
 	"github.com/google/uuid"
