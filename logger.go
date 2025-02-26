@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"fmt"
 	lg "log"
+	"strings"
 )
 
 type TaggedLogger interface {
@@ -52,3 +54,38 @@ func (l SimpleTaggedLog) PanicIfError(err error) {
 		l.logger.Panicf("[PANIC] " + err.Error())
 	}
 }
+
+type StringTaggedLogger struct {
+	sb *strings.Builder
+}
+
+func NewStringTaggedLogger() StringTaggedLogger {
+	return StringTaggedLogger{sb: &strings.Builder{}}
+}
+
+func (m StringTaggedLogger) Debugf(format string, args ...interface{}) {
+	m.sb.WriteString(fmt.Sprintf("[DEBUG] "+format+"\n", args...))
+}
+
+func (m StringTaggedLogger) Errorf(format string, args ...interface{}) {
+	m.sb.WriteString(fmt.Sprintf("[ERROR] "+format+"\n", args...))
+}
+
+func (m StringTaggedLogger) Infof(format string, args ...interface{}) {
+	m.sb.WriteString(fmt.Sprintf("[INFO] "+format+"\n", args...))
+}
+
+func (m StringTaggedLogger) Panicf(format string, args ...interface{}) {
+	s := fmt.Sprintf("[PANIC] "+format+"\n", args...)
+	m.sb.WriteString(s)
+	panic(s)
+}
+
+func (m StringTaggedLogger) PanicIfError(err error) {
+	if err != nil {
+		m.Panicf(err.Error())
+	}
+}
+
+var _ TaggedLogger = SimpleTaggedLog{}
+var _ TaggedLogger = StringTaggedLogger{}

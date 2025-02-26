@@ -65,3 +65,30 @@ func Test_LoggerPanicIfError(t *testing.T) {
 	require.Equal(t, "[PANIC] "+assert.AnError.Error()+"\n", buf.String())
 	require.NotPanics(t, func() { logger.PanicIfError(nil) })
 }
+
+func Test_StringTaggedLogger(t *testing.T) {
+	logger := NewStringTaggedLogger()
+	logger.Debugf("test %d", 1)
+	require.Equal(t, "[DEBUG] test 1\n", logger.sb.String())
+	logger.Errorf("test %d", 2)
+	require.Equal(t, "[DEBUG] test 1\n[ERROR] test 2\n", logger.sb.String())
+	logger.Infof("test %d", 3)
+	require.Equal(t, "[DEBUG] test 1\n[ERROR] test 2\n[INFO] test 3\n",
+		logger.sb.String())
+	require.Panics(t, func() { logger.Panicf("test %d", 4) })
+	require.Equal(t,
+		"[DEBUG] test 1\n[ERROR] test 2\n[INFO] test 3\n[PANIC] test 4\n",
+		logger.sb.String())
+}
+
+func Test_StringTaggedLogger_panics_if_error(t *testing.T) {
+	logger := NewStringTaggedLogger()
+	require.Panics(t, func() { logger.PanicIfError(assert.AnError) })
+	require.Equal(t, "[PANIC] "+assert.AnError.Error()+"\n", logger.sb.String())
+}
+
+func Test_StringTaggedLogger_does_not_panic(t *testing.T) {
+	logger := NewStringTaggedLogger()
+	require.NotPanics(t, func() { logger.PanicIfError(nil) })
+	require.Empty(t, logger.sb.String())
+}
