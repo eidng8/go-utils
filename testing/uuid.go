@@ -7,7 +7,7 @@ import (
 	"github.com/eidng8/go-utils"
 )
 
-type MockConfig struct {
+type MockUuidConfig struct {
 	GetPanics                   bool
 	NewReturnsError             bool
 	MarshalBinaryReturnsError   bool
@@ -19,10 +19,10 @@ type MockConfig struct {
 
 type MockUuid struct {
 	id  utils.UUID
-	cfg MockConfig
+	cfg MockUuidConfig
 }
 
-func NewUuidMock(cfg MockConfig) MockUuid {
+func NewUuidMock(cfg MockUuidConfig) MockUuid {
 	m := MockUuid{}
 	m.id = &utils.Uuid{}
 	m.cfg = cfg
