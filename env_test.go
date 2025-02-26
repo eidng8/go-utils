@@ -14,7 +14,7 @@ func setupEnvTest(tb testing.TB) {
 	require.Nil(tb, err)
 }
 
-func TestGetEnvWithDefault(t *testing.T) {
+func Test_GetEnvWithDefault(t *testing.T) {
 	setupEnvTest(t)
 	got := GetEnvWithDefault("TEST_ENV", "defaultValue")
 	require.Equal(t, "TEST", got)
@@ -24,7 +24,7 @@ func TestGetEnvWithDefault(t *testing.T) {
 	require.Equal(t, "defaultValue", got)
 }
 
-func TestGetEnvWithDefaultNE(t *testing.T) {
+func Test_GetEnvWithDefaultNE(t *testing.T) {
 	setupEnvTest(t)
 	got := GetEnvWithDefaultNE("TEST_ENV", "defaultValue")
 	require.Equal(t, "TEST", got)
@@ -32,6 +32,22 @@ func TestGetEnvWithDefaultNE(t *testing.T) {
 	require.Equal(t, "defaultValue", got)
 	got = GetEnvWithDefaultNE("NO_DEF", "defaultValue")
 	require.Equal(t, "defaultValue", got)
+}
+
+func Test_MustGetEnv(t *testing.T) {
+	setupEnvTest(t)
+	got := MustGetEnv("TEST_ENV")
+	require.Equal(t, "TEST", got)
+	require.NoError(t, os.Unsetenv("TEST_ENV"))
+	require.Panics(t, func() { MustGetEnv("TEST_ENV") })
+}
+
+func Test_MustGetEnvNE(t *testing.T) {
+	setupEnvTest(t)
+	got := MustGetEnvNE("TEST_ENV")
+	require.Equal(t, "TEST", got)
+	require.NoError(t, os.Setenv("TEST_ENV", ""))
+	require.Panics(t, func() { MustGetEnvNE("TEST_ENV") })
 }
 
 func Test_GetEnvInt8(t *testing.T) {
